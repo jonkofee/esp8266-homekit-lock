@@ -34,6 +34,7 @@ void my_accessory_identify(homekit_value_t _value) {
 // optional: NAME
 homekit_characteristic_t cha_target = HOMEKIT_CHARACTERISTIC_(TARGET_DOOR_STATE, HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_CLOSED);
 homekit_characteristic_t cha_current = HOMEKIT_CHARACTERISTIC_(CURRENT_DOOR_STATE, HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_CLOSED);
+homekit_characteristic_t cha_programmable_switch_event = HOMEKIT_CHARACTERISTIC_(PROGRAMMABLE_SWITCH_EVENT, 0);
 
 // format: string; HAP section 9.62; max length 64
 homekit_characteristic_t cha_name = HOMEKIT_CHARACTERISTIC_(NAME, "Калитка");
@@ -53,6 +54,10 @@ homekit_accessory_t *accessories[] = {
 			&cha_target,
       &cha_current,
 			&cha_name,
+			NULL
+		}),
+		HOMEKIT_SERVICE(DOORBELL, .primary=true, .characteristics=(homekit_characteristic_t*[]){
+			&cha_programmable_switch_event,
 			NULL
 		}),
         NULL
