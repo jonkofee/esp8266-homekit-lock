@@ -65,15 +65,14 @@ void loop() {
 extern "C" homekit_server_config_t config;
 extern "C" homekit_characteristic_t cha_target;
 extern "C" homekit_characteristic_t cha_current;
-extern "C" homekit_accessory_t *accessories[];
 extern "C" homekit_characteristic_t cha_programmable_switch_event;
 
 uint8_t current_door_state = HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_UNKNOWN;
 uint8_t target_door_state = HOMEKIT_CHARACTERISTIC_TARGET_DOOR_STATE_UNKNOWN;
 static uint32_t next_heap_millis = 0;
 
-#define PIN_SWITCH 2
-#define PIN_BUTTON 0 // Use the Flash-Button of NodeMCU
+#define PIN_SWITCH 14
+#define PIN_DOORBELL_BUTTON 12 // Use the Flash-Button of NodeMCU
 
 // Called when the value is read by iOS Home APP
 homekit_value_t cha_programmable_switch_event_getter() {
@@ -82,7 +81,6 @@ homekit_value_t cha_programmable_switch_event_getter() {
 }
 
 void gdo_target_state_set(homekit_value_t new_value) {
-  printf("1ajshdjkagsjdhakgskdjasd \n aksdgaskjdhgajksd \n");
   homekit_characteristic_notify(&cha_target, HOMEKIT_UINT8(HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_OPEN));
   homekit_characteristic_notify(&cha_current, HOMEKIT_UINT8(HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_OPEN));
 
@@ -98,12 +96,12 @@ void my_homekit_setup() {
 	pinMode(PIN_SWITCH, OUTPUT);
 	digitalWrite(PIN_SWITCH, LOW);
 
-  pinMode(PIN_BUTTON, INPUT_PULLUP);
+  pinMode(PIN_DOORBELL_BUTTON, INPUT_PULLUP);
 
   cha_target.setter = gdo_target_state_set;
 
-  pinMode(PIN_BUTTON, INPUT_PULLUP);
-	ESPButton.add(0, PIN_BUTTON, LOW, true, true);
+  pinMode(PIN_DOORBELL_BUTTON, INPUT_PULLUP);
+	ESPButton.add(0, PIN_DOORBELL_BUTTON, LOW, true, true);
 	ESPButton.setCallback([&](uint8_t id, ESPButtonEvent event) {
 		// Only one button is added, no need to check the id.
 		LOG_D("Button Event: %s", ESPButton.getButtonEventDescription(event));
