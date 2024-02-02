@@ -72,7 +72,7 @@ uint8_t target_door_state = HOMEKIT_CHARACTERISTIC_TARGET_DOOR_STATE_UNKNOWN;
 static uint32_t next_heap_millis = 0;
 
 #define PIN_SWITCH 14
-#define PIN_DOORBELL_BUTTON 12 // Use the Flash-Button of NodeMCU
+#define PIN_LOCK_BUTTON 13
 
 // Called when the value is read by iOS Home APP
 homekit_value_t cha_programmable_switch_event_getter() {
@@ -80,7 +80,7 @@ homekit_value_t cha_programmable_switch_event_getter() {
 	return HOMEKIT_NULL_CPP();
 }
 
-void gdo_target_state_set(homekit_value_t new_value) {
+void open_lock() {
   homekit_characteristic_notify(&cha_target, HOMEKIT_UINT8(HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_OPEN));
   homekit_characteristic_notify(&cha_current, HOMEKIT_UINT8(HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_OPEN));
 
@@ -92,31 +92,24 @@ void gdo_target_state_set(homekit_value_t new_value) {
   homekit_characteristic_notify(&cha_current, HOMEKIT_UINT8(HOMEKIT_CHARACTERISTIC_CURRENT_DOOR_STATE_CLOSED));
 }
 
+void gdo_target_state_set(homekit_value_t new_value) {
+  open_lock();
+}
+
+
 void my_homekit_setup() {
 	pinMode(PIN_SWITCH, OUTPUT);
-	digitalWrite(PIN_SWITCH, LOW);
-
-  pinMode(PIN_DOORBELL_BUTTON, INPUT_PULLUP);
+  pinMode(PIN_LOCK_BUTTON, INPUT_PULLUP);
+	
+  digitalWrite(PIN_SWITCH, LOW);
 
   cha_target.setter = gdo_target_state_set;
 
-  pinMode(PIN_DOORBELL_BUTTON, INPUT_PULLUP);
-	ESPButton.add(0, PIN_DOORBELL_BUTTON, LOW, true, true);
+	ESPButton.add(0, PIN_LOCK_BUTTON, LOW, true, true);
 	ESPButton.setCallback([&](uint8_t id, ESPButtonEvent event) {
-		// Only one button is added, no need to check the id.
-		LOG_D("Button Event: %s", ESPButton.getButtonEventDescription(event));
-		uint8_t cha_value = 0;
-		if (event == ESPBUTTONEVENT_SINGLECLICK) {
-			cha_value = HOMEKIT_PROGRAMMABLE_SWITCH_EVENT_SINGLE_PRESS;
-		} else if (event == ESPBUTTONEVENT_DOUBLECLICK) {
-			cha_value = HOMEKIT_PROGRAMMABLE_SWITCH_EVENT_DOUBLE_PRESS;
-		} else if (event == ESPBUTTONEVENT_LONGCLICK) {
-			cha_value = HOMEKIT_PROGRAMMABLE_SWITCH_EVENT_LONG_PRESS;
-		}
-		cha_programmable_switch_event.value.uint8_value = cha_value;
-		homekit_characteristic_notify(&cha_programmable_switch_event,
-				cha_programmable_switch_event.value);
-	});
+    open_lock();
+  });
+
 	ESPButton.begin();
 
 	cha_programmable_switch_event.getter = cha_programmable_switch_event_getter;
